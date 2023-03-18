@@ -5,7 +5,7 @@ shopt -s expand_aliases
 
 JDK_COMMIT="$1"
 # FILE="$2"
-JDK_PATH='../jdk'
+JDK_PATH='${2:-../jdk}'
 
 files=$(git diff --name-only --diff-filter=U --relative)
 for file in ${files}; do

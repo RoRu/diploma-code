@@ -35,6 +35,7 @@ fi
 read -p "Commit changes?  " choice
 echo
 if [[ $choice =~ ^[Yy]$ ]]; then
+    # TODO: изменить сообщения на Backport $JDK_COMMIT
     git commit -m "${ISSUE_ID}: $(jq -r '.fields.summary' /tmp/jdk-${ISSUE_ID}.json)"
 else
     echo "You can commit this change by executing:
