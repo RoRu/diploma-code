@@ -11,7 +11,7 @@ BASE_API="https://bugs.openjdk.org/rest/api/2"
 
 # здесь найти коммит из jdk и применить его на u-dev
 if [[ ! -f "/tmp/jdk-${ISSUE_ID}-links.json" ]]; then
-    curl -SsL "${BASE_API}/issue/JDK-${ISSUE_ID}/remotelink" > /tmp/jdk-${ISSUE_ID}-links.json
+    curl -SsL "${BASE_API}/issue/JDK-${ISSUE_ID}/remotelink" > /tmp/jdk-${ISSUE_ID}-links.json || rm /tmp/jdk-${ISSUE_ID}-links.json
 fi
 JDK_COMMIT=$(jq -r '.[].object.url | select(test("^https://.*/jdk/commit/[0-9a-zA-Z]*"))' "/tmp/jdk-${ISSUE_ID}-links.json" | grep -o '[^/]*$')
 
