@@ -14,7 +14,7 @@ To run those you'd need:
 
 All scripts utilise and rely on established OpenJDK Project's development processes, naming conventions and services' APIs and should not be considered general-use tools.
 
-`backport.sh <JDK_ISSUE_ID>` - tries to find and backport issue JDK-<JDK_ISSUE_ID> to the current git repo
+`backport.sh <JDK_ISSUE_ID>` - tries to find and backport issue JDK-<JDK_ISSUE_ID> to the current git repo. Uses other scripts below to find issues that the given one depends on.
 
 `check-copyright.sh <JDK_MAIN_COMMIT>` - if a merge conflict arises while running `backport.sh`, this script checks that the only changes left unmerged are Copyright notices in files and does `git cherry-pick -X theirs` if that's the case
 
