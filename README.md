@@ -21,3 +21,17 @@ All scripts utilise and rely on established OpenJDK Project's development proces
 `get-prev-changes.sh <JDK_MAIN_COMMIT> <JDK_REPO_PATH>` - in case of a merge conflict, check JDK which JDK main repo commits changed conflicted lines and suggest those commits/issues as dependencies
 
 `get-issue-deps.sh <JDK_ISSUE_ID>` - checks if Pull Request for a given issue has a dependency which need to go in first
+
+## Example
+
+In your local copy of jdk17u-dev run:
+
+```bash
+git checkout 18c4c253b38 # go to commit without changes being backported
+export GH_PAT='<your_github_pat>'
+./backport.sh 8269404 # has conflits, successfully finds JDK-8268276 as a dependency
+
+git reset --hard # need to remove conflict
+./backport.sh 8268276
+./backport.sh 8269404 # now applying cleanly
+```
