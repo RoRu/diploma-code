@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xuo pipefail
+set -uo pipefail
 shopt -s expand_aliases
 
 ISSUE_ID="$1"
@@ -15,6 +15,15 @@ alias curl_gh='curl -sSL -H "Accept: application/vnd.github+json" -H "Authorizat
 
 # curl -SsL "${BASE_API}/issue/JDK-${ISSUE_ID}" > /tmp/jdk-${ISSUE_ID}.json
 
+dep_pr_message() {
+    dep_message="$(curl_gh "${GH_BASE_API}/pulls/${1}" | jq -r '.title' | cut -d':' -f1)"
+            
+    echo "Issue JDK-${dep_message} might be a dependency for this issue or implement related changes
+For details take a look at:
+    https://bugs.openjdk.org/browse/JDK-${dep_message}
+    https://github.com/openjdk/jdk/pull/${1}"
+    exit 0
+}
 
 # Пробуем найти PR для 17u-dev. TODO: стоит учитывать, что их может быть несколько 
 curl -SsL "${BASE_API}/issue/JDK-${ISSUE_ID}/remotelink" > /tmp/jdk-${ISSUE_ID}-links.json
@@ -24,26 +33,23 @@ if [[ -z ${JDK_U_PR} ]]; then
     exit 1
 fi
 
-curl_gh "${GH_BASE_API}/pulls/${JDK_U_PR}" > "/tmp/pull-${JDK_U_PR}.json" \
-    || echo "Github API might be unavailable or there is no GH_PAT env var"
+for pr in $JDK_U_PR; do
+    curl_gh "${GH_BASE_API}/pulls/${pr}" > "/tmp/pull-${pr}.json" \
+        || echo "Github API might be unavailable or there is no GH_PAT env var"
 
-pr_base="$(jq -r '.base.ref' "/tmp/pull-${JDK_U_PR}.json")"
-if [[ "${pr_base}" == 'master' ]]; then
-    curl_gh "${GH_BASE_API}/issues/${JDK_U_PR}/comments" > "/tmp/pull-${JDK_U_PR}-comments.json"
-    
-    dependency="$(jq -r '.[].body | select(test(".*this PR into `pr/[0-9]+` will.*"))' /tmp/pull-${JDK_U_PR}-comments.json | grep -oE '[0-9]+')"
-    if [[ -n ${dependency} ]]; then
-        dep_message="$(curl_gh "${GH_BASE_API}/pulls/${dependency}" | jq -r '.title' | cut -d':' -f1)"
+    pr_base="$(jq -r '.base.ref' "/tmp/pull-${pr}.json")"
+    if [[ "${pr_base}" == 'master' ]]; then
+        curl_gh "${GH_BASE_API}/issues/${pr}/comments" > "/tmp/pull-${pr}-comments.json"
         
-        echo "Issue JDK-${dep_message} might be a dependency for this issue or implement related changes
-        For details take a look at:
-        https://bugs.openjdk.org/browse/JDK-${dep_message} and https://github.com/openjdk/jdk/pull/${dependency}"
-        exit 0
+        dependency="$(jq -r '.[].body | select(test(".*this PR into `pr/[0-9]+` will.*"))' /tmp/pull-${pr}-comments.json | grep -oE '[0-9]+')"
+        if [[ -n ${dependency} ]]; then
+            dep_pr_message "${dependency}"
+        else
+            # TODO: показывать полезные линки здесь (issue, PR, etc)
+            # echo "Sorry, I could not find any dependencies for this issue, you should search manually"
+            exit 1
+        fi
     else
-        # TODO: показывать полезные линки здесь (issue, PR, etc)
-        echo "Sorry, I could not find any dependencies for this issue, you should search manually"
-        exit 1
+        dep_pr_message "${pr_base}"
     fi
-else
-    echo "Branch ${pr_base} might be a dependency for this issue"
-fi
+done

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xuo pipefail
+set -uo pipefail
 
 ISSUE_ID="$1"
 # JDK_VER="$2"
@@ -26,7 +26,15 @@ git stash
 git fetch --no-tags https://github.com/openjdk/jdk "${JDK_COMMIT}"
 git cherry-pick --no-commit "${JDK_COMMIT}" \
     && { git add --update && git stash pop || true; } \
-    || { ./check-copyright.sh "${JDK_COMMIT}" || exit 1; }
+    || 
+    { 
+        ./check-copyright.sh "${JDK_COMMIT}" || 
+        {
+             ./get-issue-deps.sh "${ISSUE_ID}"
+             ./get-prev-changes.sh "${JDK_COMMIT}"
+             exit 1
+        }
+    }
 
 git status
 if [[ ! -f "/tmp/jdk-${ISSUE_ID}.json" ]]; then

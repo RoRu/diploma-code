@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xuo pipefail
+set -uo pipefail
 shopt -s expand_aliases
 
 JDK_COMMIT="$1"
@@ -10,7 +10,7 @@ JDK_PATH="${2:-../jdk}"
 get_dep() {
     cd "${JDK_PATH}"
     parent_commit="$(git rev-parse "${JDK_COMMIT}^")"
-    git checkout "${parent_commit}"
+    git checkout "${parent_commit}" >/dev/null 2>&1
     if [[ $1 == 1 ]]; then
         dep_issue="$(git log --pretty=format:%s --diff-filter=A -- $file | cut -d':' -f1)"
     else

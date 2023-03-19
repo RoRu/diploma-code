@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xuo pipefail
+set -uo pipefail
 
 JDK_COMMIT="$1"
 
@@ -12,7 +12,8 @@ for file in ${files}; do
         git restore --staged "${file}"
         git restore "${file}"
     else
-        echo "There is some non-copyright conflict in file ${file}, please resolve conflicts manually"
+        echo "There is some non-copyright conflict in file ${file}, please wait, trying to find possible dependencies..."
+        echo
         exit 1
     fi
 done
