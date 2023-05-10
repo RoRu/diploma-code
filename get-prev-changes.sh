@@ -17,14 +17,16 @@ get_dep() {
         dep_issue="$(git log -1 --pretty=format:%s "${dep_commit}" | cut -d':' -f1)"
     fi
     cd - >/dev/null 2>&1
-    if [[ -z "$(git log --oneline --grep "^${dep_issue}" '686d76f7721..HEAD')" ]]; then
+    # 4afbcaf55383ec2f5da53282a1547bac3d099e9d - is a merge-base for jdk and jdk17u-dev
+    if [[ -z "$(git log --oneline --grep "^${dep_issue}" '4afbcaf55383ec2f5da53282a1547bac3d099e9d..HEAD')" ]]; then
+        echo "${dep_commit}" >> "/tmp/jdk-deps.txt"
         echo "Issue JDK-${dep_issue} might be a dependency"
     fi
 }
 
 files=$(git diff --name-only --diff-filter=U --relative)
 for file in ${files}; do
-    diff_lines="$(git diff --unified=0 --no-prefix ${file} | grep -oE '[0-9]+,[0-9]+\s@@@' | cut -d',' -f1)"
+    diff_lines="$(git diff --unified=0 --no-prefix ${file} | grep -oE '@@@\s-[0-9]+' | cut -d'-' -f2)"
     if [[ -z $diff_lines && "$(git diff $file)" == *Unmerged* ]]; then
         get_dep 1
     fi

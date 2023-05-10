@@ -1,7 +1,12 @@
-FROM ubuntu:22.04
+FROM python:3.9
 
-RUN apt update && \
-    apt install -y \
+COPY requirements-lock.txt ./requirements.txt
+RUN pip install -r requirements.txt
+
+RUN    apt update \
+    && apt install -y \
         git \
         curl \
-        jq
+        jq \
+        htop \
+    && pip install git-deps thefuzz[speedup]
